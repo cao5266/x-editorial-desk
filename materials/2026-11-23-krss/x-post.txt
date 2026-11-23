@@ -1,0 +1,6 @@
+RSS 订阅太多，想看的 AI 教程总被刷下去？用自托管阅读器 Krss 先把它们挑出来。
+
+用 Docker Compose 启动，先加一个常看的订阅。设「标题含教程 → 加星」，预览命中再保存。
+
+按作者文档整理，未实测。AI 摘要和翻译需自备 API Key。
+https://github.com/kue02/Krss/tree/v1.2.0

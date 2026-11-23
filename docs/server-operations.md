@@ -11,7 +11,7 @@
 在项目根目录的 PowerShell 中执行：
 
 ```powershell
-ssh.exe -i '..local-secretskakacodex.pem' -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes ubuntu@101.34.76.198
+ssh.exe -i '.local-secrets/kakacodex.pem' -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes ubuntu@101.34.76.198
 ```
 
 新电脑若还没有这台服务器的主机记录，先通过可信渠道核对服务器的 SSH 主机密钥指纹，再录入 `known_hosts`。不要关闭主机校验，也不要把私钥内容粘到聊天、工单或仓库里。
@@ -33,13 +33,36 @@ ssh.exe -i '..local-secretskakacodex.pem' -o IdentitiesOnly=yes -o StrictHostKey
 在项目根目录执行，保持窗口打开：
 
 ```powershell
-ssh.exe -NT -i '..local-secretskakacodex.pem' -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ExitOnForwardFailure=yes -L 127.0.0.1:15000:127.0.0.1:5000 -L 127.0.0.1:18080:127.0.0.1:8080 ubuntu@101.34.76.198
+ssh.exe -NT -i '.local-secrets/kakacodex.pem' -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ExitOnForwardFailure=yes -L 127.0.0.1:15000:127.0.0.1:5000 -L 127.0.0.1:18080:127.0.0.1:8080 ubuntu@101.34.76.198
 ```
 
 - changedetection.io：[本机 15000](http://127.0.0.1:15000/)
 - Miniflux：[本机 18080](http://127.0.0.1:18080/)
 
 若本机端口冲突，只改每个 `-L` 参数最左边 `127.0.0.1:` 后的端口（15000 或 18080），不用改服务器端口。Freebie Radar 直接用 HTTPS，无需隧道。
+
+## 从工作站生成三路选题批次
+
+本仓库的[只读提取工具](../scripts/editorial_intake.py)不是线上服务源码。它将读取器通过 SSH 标准输入交给现有环境运行，不上传服务文件、不触发抓取、不改配置，不调用模型和 X。需要工作站 Python 3.10+、OpenSSH 和可信主机记录；远端依赖当前容器名、数据位置、Python、SQLite 3.42+ 以及既有非交互 sudo。不得为了跑脚本放宽主机验证或远端权限。日常定时运行前宜另行配置最小权限，目前只验了人工运行。
+
+```powershell
+New-Item -ItemType Directory -Path local-intake -Force | Out-Null
+$batchName = Get-Date -Format 'yyyyMMdd-HHmmss'
+python -B scripts/editorial_intake.py --hours 24 > "local-intake/$batchName.json"
+$intakeExit = $LASTEXITCODE
+$batch = Get-Content -Raw -LiteralPath "local-intake/$batchName.json" | ConvertFrom-Json
+$batch.sources | Select-Object source,status,count,exported,truncated,health
+```
+
+48 小时补漏时用 `--hours 48`；窗口 `[start, end)`。`--end` 可固定取数窗口，但不能重建历史健康状态、删除前数据或历史配置。输出按条目／快照分组，三路每路最多导出 500 条，截断时有总数和标记。JSON 只在本机 `local-intake/`（Git 已忽略），含来源标题和 URL，仍按内部批次对待；可分享的脱敏选题依据另存审稿包。脚本退出码 1 表示至少一路标为 `failed`；`partial` 不会触发非零退出，务必检查三路状态。不输出进程标准错误、密码、Key、Feed 私有配置、全部网页快照或数据库内容。
+
+| 服务 | 本工具实际读取 | 补看或降级 |
+| --- | --- | --- |
+| Miniflux | PostgreSQL 只读事务，取启用订阅的检查／错误计数及窗口入库条目。状态看最新记录；超过 24 小时未检查记未知。 | 经隧道看单个订阅错误。OPML 是订阅清单，并非文章导出。 |
+| changedetection | 读取部署版本的 `watch.json` 和 `history.txt`，得出可用性、首快照与相邻快照引用。超过 24 小时未检查记未知。 | UI 选相邻快照看 Diff；必要时在授权环境内只读比较快照。JSON 有索引但不传快照正文，也不判定是否有实质变化。 |
+| Freebie Radar | SQLite 以 `mode=ro` 和 `query_only` 读取；区分最新源状态、窗口运行和入库。超过较大者（30 分钟或 3 个周期）未运行记未知。 | 内建 `/api/export?format=json` 可导资源流，但有当前筛选和 300 条上限，不能只用它判断采集失败或零新增。 |
+
+`ok`：有记录且当前无已知异常、未知或截断；`empty`：上述条件下没有记录；`partial`：部分源有错误、检查不明、文件读不全或导出截断；`failed`：SSH／读取失败，或所有已启用的子来源标错且没有记录；`no_sources`：确认未启用来源。未发生变更与未能读取是两回事。若以后调整部署，先校验适配器字段，再跑一次只读样本。
 
 ## 提交到私有仓库前
 

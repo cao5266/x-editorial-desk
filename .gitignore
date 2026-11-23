@@ -17,3 +17,5 @@ id_dsa
 # Tool-generated scratch output, not project source or editorial assets.
 /mcp-results/
 /materials/kites-cline-lmstudio/debug.log
+/local-intake/
+__pycache__/
