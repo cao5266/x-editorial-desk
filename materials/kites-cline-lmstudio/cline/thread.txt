@@ -1,0 +1,9 @@
+1/4 已经用 LM Studio 跑本机模型？可以把它接给 VS Code 里的 Cline，先用一个小函数试试代码解释。Cline 4.1.27 给启用认证的 LM Studio 服务加了 API Key 输入框。下文按官方文档整理，未联调。
+
+2/4 在 LM Studio 下载并加载一个适合你电脑的模型，再到 Developer 页打开「Start server」。同一台电脑上用，默认地址是 http://localhost:1234；如果改过端口，以 LM Studio 显示的为准。
+
+3/4 在 Cline 设置里把 Provider 选成「LM Studio」，保留默认地址或填实际地址。开了「Require Authentication」才需要在 LM Studio 的 Server Settings → Manage Tokens 创建 Token，填进 Cline 的 API Key 字段。最后选模型。
+
+4/4 第一次用测试仓库，试一句：「解释这个函数的输入和返回值，不要修改文件。」先看能不能收到回复，再评估解释质量。
+https://docs.cline.bot/running-models-locally/overview
+https://lmstudio.ai/docs/developer/core/authentication

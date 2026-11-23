@@ -1,0 +1,4 @@
+看外语漫画，不想一张张截图翻译？可以试试开源扩展 Kites。用支持 WebGPU 的 Chrome 装好，选 WebLLM 本地翻译，把鼠标移到一格漫画上先试。首次可能要下载模型；想在本机翻译，就别选云端引擎。
+
+项目说明，未实测。
+https://chromewebstore.google.com/detail/pcaokchkdgnmfgjkljfpghlfohbdjcmj

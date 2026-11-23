@@ -1,0 +1,19 @@
+# Local credentials. Never force-add these, even to a private repository.
+/.local-secrets/
+*.pem
+*.key
+*.ppk
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Tool-generated scratch output, not project source or editorial assets.
+/mcp-results/
+/materials/kites-cline-lmstudio/debug.log
