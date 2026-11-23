@@ -1,0 +1,10 @@
+1/4 用 n8n 逐个查一批订单，刚跑几条就遇到 429？先在 HTTP Request 里给请求加间隔。只有每批还要做别的处理，再把循环拆出来。
+
+2/4 先用 3 条测试订单，每条是一个 item。HTTP Request → Add Option → Batching：Items per Batch 填 1，Batch Interval (ms) 填 1000。
+
+每个 item 仍发一次请求。1 秒只是起点，实际按目标 API 的限额调。
+
+3/4 每批还要做清洗或记录进度？用 Loop Over Items 设 Batch Size。loop 接「HTTP Request → 批内处理 → Wait」，Wait 再接回 Loop Over Items；done 接汇总。批间等待和汇总别接反。
+
+4/4 429 后想重试，要另设 Retry On Fail。它是固定间隔，不会自动遵守 Retry-After；对方要求等更久，就别硬刷短重试。创建订单或扣费的请求，先确认能安全重放。
+https://docs.n8n.io/integrations/builtin/handle-rate-limits

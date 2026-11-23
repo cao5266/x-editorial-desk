@@ -1,0 +1,5 @@
+给 AI 应用加网页搜索：Vercel AI Gateway 的 Parallel Fast 搜索到 2027 年 1 月 31 日免费。
+
+用 AI SDK 时，显式设 parallelSearch({ mode: 'fast' })。其他搜索模式照常收费，模型 token 另按 Gateway 规则计费。
+
+https://vercel.com/changelog/parallel-web-search-is-free-on-ai-gateway-and-eve-through-january-31
